@@ -3,6 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <title>Photo Animator</title>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+      background-image: radial-gradient(circle at 20% 30%, rgba(180,0,0,0.15), transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(255,0,0,0.1), transparent 40%);
+    }
+    h1 {
+      font-size: 2.2rem;
+      text-align: center;
+      color: #ff1a1a;
+      text-shadow: 0 0 20px rgba(255,0,0,0.6);
+      letter-spacing: 1px;
+    }
+    p { text-align: center; color: #ccc; }
+    button, input, select, textarea {
+      font-size: 1rem;
+      padding: 8px 12px;
+      margin: 4px;
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #ff1a1a;
+      border-radius: 4px;
+    }
+    button {
+      background: #ff1a1a;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background: #ff4444; }
+    #preview {
+      width: 100%;
+      max-width: 800px;
+      background: #000;
+      margin: 20px auto;
+      border-radius: 8px;
+      display: block;
+      border: 2px solid #ff1a1a;
+      box-shadow: 0 0 30px rgba(255,0,0,0.3);
+    }
+    .photo-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 15px 0;
+      min-height: 120px;
+      justify-content: center;
+    }
+    .photo-item {
+      background: #111;
+      padding: 10px;
+      border-radius: 8px;
+      width: 190px;
+      cursor: grab;
+      border: 1px solid #ff1a1a;
+    }
+    .photo-item.dragging { opacity: 0.5; }
+    .photo-item img {
+      width: 170px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #333;
+    }
+    .photo-item input, .photo-item select, .photo-item textarea {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    textarea { height: 50px; resize: vertical; }
+    .controls {
+      background: #111;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 1px solid #ff1a1a;
+      text-align: center;
+    }
+    #totalDuration { text-align: center; color: #ff1a1a; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>PHOTO ANIMATOR</h1>
+  <p>Upload photos → drag to reorder → set duration, text & style → add music → preview & export.</p>
+
+  <div style="text-align:center;">
+    <input type="file" id="fileInput" multiple accept="image/*">
+  </div>
+  <div class="photo-list" id="photoList"></div>
+  <p id="totalDuration">Total duration: 0s</p>
+
+  <div class="controls">
+    <label>Default duration (sec): <input type="number" id="defaultDuration" value="3" min="0.5" max="30" step="0.5"></label><br>
+    <label>Background music: <input type="file" id="musicInput" accept="audio/*"></label><br>
+    <label>Music volume: <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.7"></label><br>
+    <label>Crossfade (sec): <input type="number" id="crossfadeDuration" value="0.8" min="0" max="3" step="0.1"></label><br>
+  </div>
+
+  <div style="text-align:center;">
+    <button id="previewBtn">Preview</button>
+    <button id="exportBtn">Export Video</button>
+  </div>
+
+  <canvas id="preview" width="1280" height="720"></canvas>
+  <p id="status" style="text-align:center;"></p>
+
+  <script src="app.js"></script>
+</body>
+</html>
+Delete everything currently in the file, paste this, and commit.
+
+Make sure your app.js is also the latest version I gave you (the one with the MP4 conversion). After both are updated, refresh the live site and try exporting — it should give you an .mp4 file.
+
+
+
+image.png
+Your file is still the messy version. You need to completely replace everything in index.html with the clean code I just posted.
+
+Do this:
+
+Click inside the editor
+Select all (Ctrl+A)
+Delete everything
+Paste the full clean index.html I gave you in my last message
+Commit
+Right now it still has the broken styles and duplicate tags. Once you paste the complete version I provided, it will be correct.
+
+ok past a who new fresh copy, sigh so sorry
+No need to apologize! Here’s a fresh, complete copy of index.html.
+
+Select all, delete everything, and paste this:
+
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Photo Animator</title>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.6/dist/ffmpeg.min.js"></script>
   <style>
     body {
       font-family: system-ui, sans-serif;
