@@ -1,3 +1,4 @@
+
 const fileInput = document.getElementById('fileInput');
 const photoList = document.getElementById('photoList');
 const previewBtn = document.getElementById('previewBtn');
