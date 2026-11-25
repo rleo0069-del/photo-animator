@@ -21,9 +21,15 @@ const styles = [
   'rotate', 'static'
 ];
 
-// Load FFmpeg for MP4 conversion
 const { createFFmpeg, fetchFile } = FFmpeg;
-const ffmpeg = createFFmpeg({ log: true });
+const ffmpeg = createFFmpeg({ 
+  log: true,
+  progress: ({ ratio }) => {
+    if (ratio > 0) {
+      status.textContent = `Converting to MP4... ${Math.round(ratio * 100)}%`;
+    }
+  }
+});
 
 fileInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
@@ -204,11 +210,13 @@ async function playSequence(record = false) {
     await new Promise(r => recorder.onstop = r);
     const webmBlob = new Blob(chunks, { type: 'video/webm' });
 
-    status.textContent = 'Converting to MP4...';
+    status.textContent = 'Loading converter...';
 
     if (!ffmpeg.isLoaded()) {
       await ffmpeg.load();
     }
+
+    status.textContent = 'Converting to MP4... 0%';
 
     ffmpeg.FS('writeFile', 'input.webm', await fetchFile(webmBlob));
     await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', 'output.mp4');
