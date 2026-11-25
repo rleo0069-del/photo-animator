@@ -4,27 +4,33 @@
   <meta charset="UTF-8">
   <title>Photo Animator</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 960px; margin: 30px auto; padding: 20px; background: #111; color: #eee; }
-    h1 { font-size: 1.8rem; }
+    body { font-family: system-ui, sans-serif; max-width: 1000px; margin: 30px auto; padding: 20px; background: #111; color: #eee; }
+    h1 { font-size: 1.9rem; }
     button, input, select, textarea { font-size: 1rem; padding: 8px 12px; margin: 4px; }
     #preview { width: 100%; max-width: 800px; background: #000; margin: 20px 0; border-radius: 8px; }
-    .photo-list { display: flex; flex-wrap: wrap; gap: 12px; margin: 15px 0; }
-    .photo-item { background: #222; padding: 10px; border-radius: 8px; width: 180px; }
-    .photo-item img { width: 160px; height: 100px; object-fit: cover; border-radius: 4px; }
+    .photo-list { display: flex; flex-wrap: wrap; gap: 12px; margin: 15px 0; min-height: 120px; }
+    .photo-item { background: #222; padding: 10px; border-radius: 8px; width: 190px; cursor: grab; }
+    .photo-item.dragging { opacity: 0.5; }
+    .photo-item img { width: 170px; height: 110px; object-fit: cover; border-radius: 4px; }
     .photo-item input, .photo-item select, .photo-item textarea { width: 100%; box-sizing: border-box; }
     textarea { height: 50px; resize: vertical; }
+    .controls { background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; }
   </style>
 </head>
 <body>
   <h1>Photo Animator</h1>
-  <p>Upload photos → set duration, text, and animation style → add music → preview & export.</p>
+  <p>Upload photos → drag to reorder → set duration, text & style → add music → preview & export.</p>
 
   <input type="file" id="fileInput" multiple accept="image/*">
   <div class="photo-list" id="photoList"></div>
+  <p id="totalDuration">Total duration: 0s</p>
 
-  <label>Default duration (sec): <input type="number" id="defaultDuration" value="3" min="0.5" max="30" step="0.5"></label><br>
-  <label>Background music: <input type="file" id="musicInput" accept="audio/*"></label><br>
-  <label>Crossfade duration (sec): <input type="number" id="crossfadeDuration" value="0.8" min="0" max="3" step="0.1"></label><br><br>
+  <div class="controls">
+    <label>Default duration (sec): <input type="number" id="defaultDuration" value="3" min="0.5" max="30" step="0.5"></label><br>
+    <label>Background music: <input type="file" id="musicInput" accept="audio/*"></label><br>
+    <label>Music volume: <input type="range" id="musicVolume" min="0" max="1" step="0.05" value="0.7"></label><br>
+    <label>Crossfade (sec): <input type="number" id="crossfadeDuration" value="0.8" min="0" max="3" step="0.1"></label><br>
+  </div>
 
   <button id="previewBtn">Preview</button>
   <button id="exportBtn">Export Video</button>
