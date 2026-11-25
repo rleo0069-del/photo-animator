@@ -1,4 +1,3 @@
-
 const fileInput = document.getElementById('fileInput');
 const photoList = document.getElementById('photoList');
 const previewBtn = document.getElementById('previewBtn');
@@ -8,18 +7,18 @@ const ctx = canvas.getContext('2d');
 const status = document.getElementById('status');
 const defaultDurationInput = document.getElementById('defaultDuration');
 const musicInput = document.getElementById('musicInput');
+const musicVolume = document.getElementById('musicVolume');
 const crossfadeDurationInput = document.getElementById('crossfadeDuration');
+const totalDurationEl = document.getElementById('totalDuration');
 
-let photos = []; // { img, duration, text, style }
+let photos = [];
 let music = null;
+let draggedItem = null;
 
 const styles = [
-  'kenburns',
-  'zoom-in',
-  'zoom-out',
-  'pan-left',
-  'pan-right',
-  'static'
+  'kenburns', 'zoom-in', 'zoom-out',
+  'pan-left', 'pan-right', 'pan-up', 'pan-down',
+  'rotate', 'static'
 ];
 
 fileInput.addEventListener('change', async (e) => {
@@ -43,61 +42,82 @@ musicInput.addEventListener('change', (e) => {
   if (file) music = URL.createObjectURL(file);
 });
 
+function updateTotalDuration() {
+  const total = photos.reduce((sum, p) => sum + p.duration, 0);
+  totalDurationEl.textContent = `Total duration: ${total.toFixed(1)}s`;
+}
+
 function renderPhotoList() {
   photoList.innerHTML = '';
   photos.forEach((p, i) => {
     const div = document.createElement('div');
     div.className = 'photo-item';
+    div.draggable = true;
+    div.dataset.index = i;
     div.innerHTML = `
       <img src="${p.img.src}"><br>
-      Duration: <input type="number" value="${p.duration}" min="0.5" max="30" step="0.5" data-index="${i}" class="duration">
+      Duration: <input type="number" value="${p.duration}" min="0.5" max="30" step="0.5" class="duration">
       Style:
-      <select data-index="${i}" class="style">
+      <select class="style">
         ${styles.map(s => `<option value="${s}" ${s === p.style ? 'selected' : ''}>${s}</option>`).join('')}
       </select>
-      Text overlay:
-      <textarea data-index="${i}" class="text" placeholder="Optional text">${p.text}</textarea>
-      <button data-index="${i}" class="remove">Remove</button>
+      Text:
+      <textarea class="text" placeholder="Optional text">${p.text}</textarea>
+      <button class="remove">Remove</button>
     `;
     photoList.appendChild(div);
-  });
 
-  photoList.querySelectorAll('.duration').forEach(el => {
-    el.addEventListener('change', e => photos[e.target.dataset.index].duration = parseFloat(e.target.value));
-  });
-  photoList.querySelectorAll('.style').forEach(el => {
-    el.addEventListener('change', e => photos[e.target.dataset.index].style = e.target.value);
-  });
-  photoList.querySelectorAll('.text').forEach(el => {
-    el.addEventListener('input', e => photos[e.target.dataset.index].text = e.target.value);
-  });
-  photoList.querySelectorAll('.remove').forEach(btn => {
-    btn.addEventListener('click', e => {
-      photos.splice(e.target.dataset.index, 1);
+    div.querySelector('.duration').addEventListener('change', e => {
+      photos[i].duration = parseFloat(e.target.value);
+      updateTotalDuration();
+    });
+    div.querySelector('.style').addEventListener('change', e => photos[i].style = e.target.value);
+    div.querySelector('.text').addEventListener('input', e => photos[i].text = e.target.value);
+    div.querySelector('.remove').addEventListener('click', () => {
+      photos.splice(i, 1);
       renderPhotoList();
     });
+
+    // Drag and drop
+    div.addEventListener('dragstart', () => {
+      draggedItem = i;
+      div.classList.add('dragging');
+    });
+    div.addEventListener('dragend', () => div.classList.remove('dragging'));
+    div.addEventListener('dragover', e => e.preventDefault());
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      const targetIndex = parseInt(div.dataset.index);
+      if (draggedItem !== null && draggedItem !== targetIndex) {
+        const [moved] = photos.splice(draggedItem, 1);
+        photos.splice(targetIndex, 0, moved);
+        renderPhotoList();
+      }
+    });
   });
+  updateTotalDuration();
 }
 
 function drawFrame(img, style, progress, text) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  let scale = 1, x = 0, y = 0;
+  let scale = 1, x = 0, y = 0, rotation = 0;
   const baseW = canvas.width;
   const baseH = canvas.height;
 
-  if (style === 'kenburns' || style === 'zoom-in') {
-    scale = 1 + progress * 0.18;
-  } else if (style === 'zoom-out') {
-    scale = 1.18 - progress * 0.18;
-  } else if (style === 'pan-left') {
-    scale = 1.1;
-    x = -progress * 80;
-  } else if (style === 'pan-right') {
-    scale = 1.1;
-    x = (progress - 1) * 80;
-  }
+  if (style === 'kenburns' || style === 'zoom-in') scale = 1 + progress * 0.2;
+  else if (style === 'zoom-out') scale = 1.2 - progress * 0.2;
+  else if (style === 'pan-left') { scale = 1.15; x = -progress * 100; }
+  else if (style === 'pan-right') { scale = 1.15; x = (progress - 1) * 100; }
+  else if (style === 'pan-up') { scale = 1.15; y = -progress * 80; }
+  else if (style === 'pan-down') { scale = 1.15; y = (progress - 1) * 80; }
+  else if (style === 'rotate') rotation = progress * 8;
+
+  ctx.save();
+  ctx.translate(baseW / 2, baseH / 2);
+  ctx.rotate(rotation * Math.PI / 180);
+  ctx.translate(-baseW / 2, -baseH / 2);
 
   const w = baseW * scale;
   const h = baseH * scale;
@@ -105,15 +125,15 @@ function drawFrame(img, style, progress, text) {
   const drawY = (baseH - h) / 2 + y;
 
   ctx.drawImage(img, drawX, drawY, w, h);
+  ctx.restore();
 
-  // Text overlay
   if (text) {
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(0, canvas.height - 120, canvas.width, 120);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, canvas.height - 130, canvas.width, 130);
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 48px system-ui, sans-serif';
+    ctx.font = 'bold 46px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(text, canvas.width / 2, canvas.height - 50);
+    ctx.fillText(text, canvas.width / 2, canvas.height - 55);
   }
 }
 
@@ -126,6 +146,7 @@ async function playSequence(record = false) {
 
   if (music && record) {
     audioEl = new Audio(music);
+    audioEl.volume = parseFloat(musicVolume.value);
     audioEl.loop = true;
     audioEl.play().catch(() => {});
   }
@@ -148,14 +169,12 @@ async function playSequence(record = false) {
       const progress = f / frames;
       drawFrame(current.img, current.style, progress, current.text);
 
-      // Crossfade into next photo near the end
       if (next && f > frames - fadeFrames) {
         const fadeProgress = (f - (frames - fadeFrames)) / fadeFrames;
         ctx.globalAlpha = fadeProgress;
         drawFrame(next.img, next.style, 0, next.text);
         ctx.globalAlpha = 1;
       }
-
       await new Promise(r => setTimeout(r, 33));
     }
   }
