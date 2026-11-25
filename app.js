@@ -22,9 +22,6 @@ const styles = [
   'rotate', 'static'
 ];
 
-const { createFFmpeg, fetchFile } = FFmpeg;
-const ffmpeg = createFFmpeg({ log: false });
-
 fileInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
   for (const file of files) {
@@ -143,6 +140,11 @@ function drawFrame(img, style, progress, text) {
 async function playSequence(record = false) {
   if (photos.length === 0) return alert('Add some photos first');
 
+  if (record) {
+    waitingSign.style.display = 'block';
+    status.textContent = 'Creating your video… please wait. The download will start automatically.';
+  }
+
   const canvasStream = canvas.captureStream(30);
   let finalStream = canvasStream;
   let audioEl = null;
@@ -202,41 +204,17 @@ async function playSequence(record = false) {
   if (record) {
     recorder.stop();
     await new Promise(r => recorder.onstop = r);
-    const webmBlob = new Blob(chunks, { type: 'video/webm' });
-
-    waitingSign.style.display = 'block';
-    status.textContent = '';
-
-    try {
-      if (!ffmpeg.isLoaded()) {
-        await ffmpeg.load();
-      }
-      ffmpeg.FS('writeFile', 'input.webm', await fetchFile(webmBlob));
-      await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', 'output.mp4');
-      const mp4Data = ffmpeg.FS('readFile', 'output.mp4');
-      const mp4Blob = new Blob([mp4Data.buffer], { type: 'video/mp4' });
-      const url = URL.createObjectURL(mp4Blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'photo-animation.mp4';
-      a.click();
-      status.textContent = 'MP4 exported!';
-    } catch (err) {
-      status.textContent = 'Conversion failed — downloading WebM instead';
-      const url = URL.createObjectURL(webmBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'photo-animation.webm';
-      a.click();
-    }
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'photo-animation.webm';
+    a.click();
 
     waitingSign.style.display = 'none';
+    status.textContent = 'Done! Your video has been downloaded. Check your Downloads folder.';
   }
 }
 
 previewBtn.addEventListener('click', () => playSequence(false));
 exportBtn.addEventListener('click', () => playSequence(true));
-
-
-
-
