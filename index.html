@@ -87,6 +87,27 @@
       text-align: center;
     }
     #totalDuration { text-align: center; color: #ff1a1a; font-weight: bold; }
+    .waiting {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      background: #ff1a1a;
+      color: #000;
+      font-weight: bold;
+      padding: 12px 20px;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      animation: slide 3s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(255,0,0,0.6);
+      z-index: 1000;
+      display: none;
+    }
+    @keyframes slide {
+      0% { left: -220px; }
+      50% { left: calc(100% - 220px); }
+      100% { left: -220px; }
+    }
   </style>
 </head>
 <body>
@@ -113,6 +134,8 @@
 
   <canvas id="preview" width="1280" height="720"></canvas>
   <p id="status" style="text-align:center;"></p>
+
+  <div id="waitingSign" class="waiting">Please wait… converting ✨</div>
 
   <script src="app.js"></script>
 </body>
