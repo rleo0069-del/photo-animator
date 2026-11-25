@@ -10,6 +10,7 @@ const musicInput = document.getElementById('musicInput');
 const musicVolume = document.getElementById('musicVolume');
 const crossfadeDurationInput = document.getElementById('crossfadeDuration');
 const totalDurationEl = document.getElementById('totalDuration');
+const waitingSign = document.getElementById('waitingSign');
 
 let photos = [];
 let music = null;
@@ -22,14 +23,7 @@ const styles = [
 ];
 
 const { createFFmpeg, fetchFile } = FFmpeg;
-const ffmpeg = createFFmpeg({ 
-  log: true,
-  progress: ({ ratio }) => {
-    if (ratio > 0) {
-      status.textContent = `Converting to MP4... ${Math.round(ratio * 100)}%`;
-    }
-  }
-});
+const ffmpeg = createFFmpeg({ log: false });
 
 fileInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
@@ -210,27 +204,39 @@ async function playSequence(record = false) {
     await new Promise(r => recorder.onstop = r);
     const webmBlob = new Blob(chunks, { type: 'video/webm' });
 
-    status.textContent = 'Loading converter...';
+    waitingSign.style.display = 'block';
+    status.textContent = '';
 
-    if (!ffmpeg.isLoaded()) {
-      await ffmpeg.load();
+    try {
+      if (!ffmpeg.isLoaded()) {
+        await ffmpeg.load();
+      }
+      ffmpeg.FS('writeFile', 'input.webm', await fetchFile(webmBlob));
+      await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', 'output.mp4');
+      const mp4Data = ffmpeg.FS('readFile', 'output.mp4');
+      const mp4Blob = new Blob([mp4Data.buffer], { type: 'video/mp4' });
+      const url = URL.createObjectURL(mp4Blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'photo-animation.mp4';
+      a.click();
+      status.textContent = 'MP4 exported!';
+    } catch (err) {
+      status.textContent = 'Conversion failed — downloading WebM instead';
+      const url = URL.createObjectURL(webmBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'photo-animation.webm';
+      a.click();
     }
 
-    status.textContent = 'Converting to MP4... 0%';
-
-    ffmpeg.FS('writeFile', 'input.webm', await fetchFile(webmBlob));
-    await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', 'output.mp4');
-    const mp4Data = ffmpeg.FS('readFile', 'output.mp4');
-
-    const mp4Blob = new Blob([mp4Data.buffer], { type: 'video/mp4' });
-    const url = URL.createObjectURL(mp4Blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'photo-animation.mp4';
-    a.click();
-    status.textContent = 'MP4 exported!';
+    waitingSign.style.display = 'none';
   }
 }
 
 previewBtn.addEventListener('click', () => playSequence(false));
 exportBtn.addEventListener('click', () => playSequence(true));
+
+
+
+
