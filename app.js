@@ -21,6 +21,10 @@ const styles = [
   'rotate', 'static'
 ];
 
+// Load FFmpeg for MP4 conversion
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: true });
+
 fileInput.addEventListener('change', async (e) => {
   const files = Array.from(e.target.files);
   for (const file of files) {
@@ -154,7 +158,7 @@ async function playSequence(record = false) {
       const source = audioContext.createMediaElementSource(audioEl);
       const dest = audioContext.createMediaStreamDestination();
       source.connect(dest);
-      source.connect(audioContext.destination); // so you can hear it too
+      source.connect(audioContext.destination);
       finalStream = new MediaStream([
         ...canvasStream.getVideoTracks(),
         ...dest.stream.getAudioTracks()
@@ -198,13 +202,25 @@ async function playSequence(record = false) {
   if (record) {
     recorder.stop();
     await new Promise(r => recorder.onstop = r);
-    const blob = new Blob(chunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
+    const webmBlob = new Blob(chunks, { type: 'video/webm' });
+
+    status.textContent = 'Converting to MP4...';
+
+    if (!ffmpeg.isLoaded()) {
+      await ffmpeg.load();
+    }
+
+    ffmpeg.FS('writeFile', 'input.webm', await fetchFile(webmBlob));
+    await ffmpeg.run('-i', 'input.webm', '-c:v', 'libx264', '-c:a', 'aac', 'output.mp4');
+    const mp4Data = ffmpeg.FS('readFile', 'output.mp4');
+
+    const mp4Blob = new Blob([mp4Data.buffer], { type: 'video/mp4' });
+    const url = URL.createObjectURL(mp4Blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'photo-animation.webm';
+    a.download = 'photo-animation.mp4';
     a.click();
-    status.textContent = 'Video exported with music!';
+    status.textContent = 'MP4 exported!';
   }
 }
 
