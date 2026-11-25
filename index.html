@@ -4,24 +4,97 @@
   <meta charset="UTF-8">
   <title>Photo Animator</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 1000px; margin: 30px auto; padding: 20px; background: #111; color: #eee; }
-    h1 { font-size: 1.9rem; }
-    button, input, select, textarea { font-size: 1rem; padding: 8px 12px; margin: 4px; }
-    #preview { width: 100%; max-width: 800px; background: #000; margin: 20px 0; border-radius: 8px; }
-    .photo-list { display: flex; flex-wrap: wrap; gap: 12px; margin: 15px 0; min-height: 120px; }
-    .photo-item { background: #222; padding: 10px; border-radius: 8px; width: 190px; cursor: grab; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #0a0a0a;
+      color: #fff;
+      background-image: radial-gradient(circle at 20% 30%, rgba(180,0,0,0.15), transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(255,0,0,0.1), transparent 40%);
+    }
+    h1 {
+      font-size: 2.2rem;
+      text-align: center;
+      color: #ff1a1a;
+      text-shadow: 0 0 20px rgba(255,0,0,0.6);
+      letter-spacing: 1px;
+    }
+    p { text-align: center; color: #ccc; }
+    button, input, select, textarea {
+      font-size: 1rem;
+      padding: 8px 12px;
+      margin: 4px;
+      background: #1a1a1a;
+      color: #fff;
+      border: 1px solid #ff1a1a;
+      border-radius: 4px;
+    }
+    button {
+      background: #ff1a1a;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background: #ff4444; }
+    #preview {
+      width: 100%;
+      max-width: 800px;
+      background: #000;
+      margin: 20px auto;
+      border-radius: 8px;
+      display: block;
+      border: 2px solid #ff1a1a;
+      box-shadow: 0 0 30px rgba(255,0,0,0.3);
+    }
+    .photo-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 15px 0;
+      min-height: 120px;
+      justify-content: center;
+    }
+    .photo-item {
+      background: #111;
+      padding: 10px;
+      border-radius: 8px;
+      width: 190px;
+      cursor: grab;
+      border: 1px solid #ff1a1a;
+    }
     .photo-item.dragging { opacity: 0.5; }
-    .photo-item img { width: 170px; height: 110px; object-fit: cover; border-radius: 4px; }
-    .photo-item input, .photo-item select, .photo-item textarea { width: 100%; box-sizing: border-box; }
+    .photo-item img {
+      width: 170px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid #333;
+    }
+    .photo-item input, .photo-item select, .photo-item textarea {
+      width: 100%;
+      box-sizing: border-box;
+    }
     textarea { height: 50px; resize: vertical; }
-    .controls { background: #1a1a1a; padding: 15px; border-radius: 8px; margin: 15px 0; }
+    .controls {
+      background: #111;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border: 1px solid #ff1a1a;
+      text-align: center;
+    }
+    #totalDuration { text-align: center; color: #ff1a1a; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>Photo Animator</h1>
+  <h1>PHOTO ANIMATOR</h1>
   <p>Upload photos → drag to reorder → set duration, text & style → add music → preview & export.</p>
 
-  <input type="file" id="fileInput" multiple accept="image/*">
+  <div style="text-align:center;">
+    <input type="file" id="fileInput" multiple accept="image/*">
+  </div>
   <div class="photo-list" id="photoList"></div>
   <p id="totalDuration">Total duration: 0s</p>
 
@@ -32,11 +105,13 @@
     <label>Crossfade (sec): <input type="number" id="crossfadeDuration" value="0.8" min="0" max="3" step="0.1"></label><br>
   </div>
 
-  <button id="previewBtn">Preview</button>
-  <button id="exportBtn">Export Video</button>
+  <div style="text-align:center;">
+    <button id="previewBtn">Preview</button>
+    <button id="exportBtn">Export Video</button>
+  </div>
 
   <canvas id="preview" width="1280" height="720"></canvas>
-  <p id="status"></p>
+  <p id="status" style="text-align:center;"></p>
 
   <script src="app.js"></script>
 </body>
