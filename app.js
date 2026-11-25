@@ -212,7 +212,7 @@ async function playSequence(record = false) {
     a.click();
 
     waitingSign.style.display = 'none';
-    status.textContent = 'Done! Your video has been downloaded. Check your Downloads folder.';
+    status.textContent = 'Done! Your video has been downloaded. Check your Downloads folder go to \n cloudconvert.com/ to /n convert your webm-to-mp4.';
   }
 }
 
