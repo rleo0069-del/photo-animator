@@ -78,7 +78,6 @@ function renderPhotoList() {
       renderPhotoList();
     });
 
-    // Drag and drop
     div.addEventListener('dragstart', () => {
       draggedItem = i;
       div.classList.add('dragging');
@@ -140,19 +139,33 @@ function drawFrame(img, style, progress, text) {
 async function playSequence(record = false) {
   if (photos.length === 0) return alert('Add some photos first');
 
-  const stream = canvas.captureStream(30);
-  let recorder, chunks = [];
+  const canvasStream = canvas.captureStream(30);
+  let finalStream = canvasStream;
   let audioEl = null;
+  let audioContext = null;
 
-  if (music && record) {
+  if (music) {
     audioEl = new Audio(music);
     audioEl.volume = parseFloat(musicVolume.value);
     audioEl.loop = true;
+
+    if (record) {
+      audioContext = new AudioContext();
+      const source = audioContext.createMediaElementSource(audioEl);
+      const dest = audioContext.createMediaStreamDestination();
+      source.connect(dest);
+      source.connect(audioContext.destination); // so you can hear it too
+      finalStream = new MediaStream([
+        ...canvasStream.getVideoTracks(),
+        ...dest.stream.getAudioTracks()
+      ]);
+    }
     audioEl.play().catch(() => {});
   }
 
+  let recorder, chunks = [];
   if (record) {
-    recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+    recorder = new MediaRecorder(finalStream, { mimeType: 'video/webm' });
     recorder.ondataavailable = e => chunks.push(e.data);
     recorder.start();
   }
@@ -180,6 +193,7 @@ async function playSequence(record = false) {
   }
 
   if (audioEl) audioEl.pause();
+  if (audioContext) audioContext.close();
 
   if (record) {
     recorder.stop();
@@ -190,7 +204,7 @@ async function playSequence(record = false) {
     a.href = url;
     a.download = 'photo-animation.webm';
     a.click();
-    status.textContent = 'Video exported!';
+    status.textContent = 'Video exported with music!';
   }
 }
 
